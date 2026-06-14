@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getServiceById, addOrder, getAddresses } from '../utils/storage';
+import { getServiceById, addOrder, getAddresses, toggleFavorite, isFavorited } from '../utils/storage';
 import { Service, Address } from '../types';
 
 export default function ServiceDetail() {
@@ -16,14 +16,34 @@ export default function ServiceDetail() {
   const [remark, setRemark] = useState('');
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [showAddrPicker, setShowAddrPicker] = useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     if (serviceId) {
       const s = getServiceById(serviceId);
-      if (s) setService(s);
+      if (s) {
+        setService(s);
+        setFavorited(isFavorited(s.aunt.id));
+      }
     }
     setSavedAddresses(getAddresses());
-  }, [serviceId]);
+  }, [serviceId, tick]);
+
+  const handleFavorite = () => {
+    if (!service) return;
+    const aunt = service.aunt;
+    const result = toggleFavorite(aunt.id, {
+      auntName: aunt.name,
+      auntAvatar: aunt.avatar,
+      auntRating: aunt.rating,
+      auntOrderCount: aunt.orderCount,
+      specialties: aunt.specialties,
+      customerName: '我',
+    });
+    setFavorited(result);
+    setTick((t) => t + 1);
+  };
 
   if (!service) {
     return (
@@ -83,8 +103,26 @@ export default function ServiceDetail() {
       </div>
 
       <div className="detail-hero">
-        <div className="detail-avatar">{service.aunt.avatar}</div>
-        <div className="detail-name">{service.aunt.name}</div>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <div className="detail-avatar">{service.aunt.avatar}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="detail-name">{service.aunt.name}</div>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleFavorite(); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 22,
+              cursor: 'pointer',
+              padding: '4px 8px',
+              color: favorited ? '#ff4d4f' : '#bfbfbf',
+            }}
+            title={favorited ? '取消收藏' : '收藏阿姨'}
+          >
+            {favorited ? '❤️' : '🤍'}
+          </button>
+        </div>
         <div className="detail-rating-line">
           ⭐ {service.aunt.rating} | {service.aunt.orderCount}单 | {service.aunt.specialties.join(' / ')}
         </div>

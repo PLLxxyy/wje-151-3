@@ -1,5 +1,5 @@
-import { Service, Order, Address, Review } from '../types';
-import { saveServices, saveOrders, saveAddresses, isSeeded, markSeeded } from './storage';
+import { Service, Order, Address, Review, Favorite } from '../types';
+import { saveServices, saveOrders, saveAddresses, saveFavorites, isSeeded, markSeeded } from './storage';
 
 const auntPool = [
   { id: 'a1', name: '王阿姨', avatar: '👩', rating: 4.9, orderCount: 328, bio: '从事家政服务8年，擅长深度保洁、收纳整理。做事认真细致，获得众多客户好评。持有高级家政服务员证书。', specialties: ['深度保洁', '收纳整理', '精细清洁'] },
@@ -111,11 +111,17 @@ const sampleReviews: Review[] = [
   { orderId: sampleOrders[3].id, serviceName: '居民搬家', auntName: '赵师傅', rating: 4, text: '搬家师傅很辛苦，东西都搬得很仔细。', createdAt: new Date(now - 4 * 86400000).toISOString() },
 ];
 
+const sampleFavorites: Favorite[] = [
+  { id: 'FAV001', auntId: 'a1', auntName: '王阿姨', auntAvatar: '👩', auntRating: 4.9, auntOrderCount: 328, specialties: ['深度保洁', '收纳整理', '精细清洁'], customerName: '我', createdAt: new Date(now - 6 * 86400000).toISOString() },
+  { id: 'FAV002', auntId: 'a5', auntName: '陈阿姨', auntAvatar: '👵', auntRating: 4.9, auntOrderCount: 412, specialties: ['家常菜', '川菜', '粤菜', '烘焙'], customerName: '我', createdAt: new Date(now - 3 * 86400000).toISOString() },
+];
+
 export function seedData(): void {
   if (isSeeded()) return;
   saveServices(servicesData);
   saveOrders(sampleOrders);
   saveAddresses(sampleAddresses);
   localStorage.setItem('wje_reviews', JSON.stringify(sampleReviews));
+  saveFavorites(sampleFavorites);
   markSeeded();
 }

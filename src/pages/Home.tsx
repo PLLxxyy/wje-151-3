@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Category, UserRole } from '../types';
-import { getServices } from '../utils/storage';
+import { getServices, toggleFavorite, isFavorited } from '../utils/storage';
 
 const categories: Category[] = [
   { id: 'cleaning', name: '保洁', icon: '🧹', description: '日常保洁、深度清洁' },
@@ -61,24 +62,59 @@ export default function Home({ role, onSwitchRole }: HomeProps) {
 
 function HotServices() {
   const navigate = useNavigate();
+  const [tick, setTick] = useState(0);
+  void tick;
   const all = getServices();
   const top = [...all].sort((a, b) => b.aunt.rating - a.aunt.rating).slice(0, 3);
 
+  const handleFavorite = (e: React.MouseEvent, s: typeof top[number]) => {
+    e.stopPropagation();
+    const aunt = s.aunt;
+    toggleFavorite(aunt.id, {
+      auntName: aunt.name,
+      auntAvatar: aunt.avatar,
+      auntRating: aunt.rating,
+      auntOrderCount: aunt.orderCount,
+      specialties: aunt.specialties,
+      customerName: '我',
+    });
+    setTick((t) => t + 1);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {top.map((s) => (
-        <div key={s.id} className="service-card" onClick={() => navigate(`/service/${s.id}`)}>
-          <div className="service-avatar">{s.aunt.avatar}</div>
-          <div className="service-info">
-            <div className="service-name">{s.name}</div>
-            <div className="service-desc">{s.description}</div>
-            <div className="service-meta">
-              <span className="service-price">¥{s.priceMin}-{s.priceMax}</span>
-              <span className="service-rating">⭐ {s.aunt.rating}</span>
+      {top.map((s) => {
+        const fav = isFavorited(s.aunt.id);
+        return (
+          <div key={s.id} className="service-card" onClick={() => navigate(`/service/${s.id}`)} style={{ position: 'relative' }}>
+            <div className="service-avatar">{s.aunt.avatar}</div>
+            <div className="service-info">
+              <div className="service-name">{s.name}</div>
+              <div className="service-desc">{s.description}</div>
+              <div className="service-meta">
+                <span className="service-price">¥{s.priceMin}-{s.priceMax}</span>
+                <span className="service-rating">⭐ {s.aunt.rating}</span>
+              </div>
             </div>
+            <button
+              onClick={(e) => handleFavorite(e, s)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                background: 'none',
+                border: 'none',
+                fontSize: 20,
+                cursor: 'pointer',
+                padding: 4,
+              }}
+              title={fav ? '取消收藏' : '收藏阿姨'}
+            >
+              {fav ? '❤️' : '🤍'}
+            </button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

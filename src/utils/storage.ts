@@ -1,10 +1,11 @@
-import { Service, Order, Address, Review } from '../types';
+import { Service, Order, Address, Review, Favorite } from '../types';
 
 const KEYS = {
   SERVICES: 'wje_services',
   ORDERS: 'wje_orders',
   ADDRESSES: 'wje_addresses',
   REVIEWS: 'wje_reviews',
+  FAVORITES: 'wje_favorites',
   SEEDED: 'wje_seeded',
 };
 
@@ -100,6 +101,52 @@ export function addReview(review: Review): void {
   const reviews = getReviews();
   reviews.unshift(review);
   save(KEYS.REVIEWS, reviews);
+}
+
+// Favorites
+export function getFavorites(): Favorite[] {
+  return load<Favorite>(KEYS.FAVORITES);
+}
+
+export function saveFavorites(favorites: Favorite[]): void {
+  save(KEYS.FAVORITES, favorites);
+}
+
+export function getFavoritesByAunt(auntId: string): Favorite[] {
+  return getFavorites().filter((f) => f.auntId === auntId);
+}
+
+export function isFavorited(auntId: string): boolean {
+  return getFavorites().some((f) => f.auntId === auntId);
+}
+
+export function addFavorite(favorite: Favorite): void {
+  const favorites = getFavorites();
+  if (!favorites.some((f) => f.auntId === favorite.auntId)) {
+    favorites.unshift(favorite);
+    saveFavorites(favorites);
+  }
+}
+
+export function removeFavorite(auntId: string): void {
+  const favorites = getFavorites().filter((f) => f.auntId !== auntId);
+  saveFavorites(favorites);
+}
+
+export function toggleFavorite(auntId: string, auntData?: Omit<Favorite, 'id' | 'createdAt' | 'auntId'>): boolean {
+  if (isFavorited(auntId)) {
+    removeFavorite(auntId);
+    return false;
+  } else if (auntData) {
+    addFavorite({
+      id: 'FAV' + Date.now().toString(36).toUpperCase(),
+      auntId,
+      createdAt: new Date().toISOString(),
+      ...auntData,
+    });
+    return true;
+  }
+  return false;
 }
 
 // Seed check

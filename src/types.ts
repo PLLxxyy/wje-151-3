@@ -79,5 +79,17 @@ export interface Review {
   createdAt: string;
 }
 
+export interface Favorite {
+  id: string;
+  auntId: string;
+  auntName: string;
+  auntAvatar: string;
+  auntRating: number;
+  auntOrderCount: number;
+  specialties: string[];
+  customerName: string;
+  createdAt: string;
+}
+
 export type UserRole = 'customer' | 'aunt';
 export type SortType = 'default' | 'price-asc' | 'price-desc' | 'rating-desc';
